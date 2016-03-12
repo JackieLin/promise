@@ -9,23 +9,40 @@ var promise;
 promise = null;
 
 describe('Promise', function() {
-  it('#new Promise', function(done) {
+  it('#new Promise', function() {
     return promise = new Promise(function(resolve, reject) {
       return window.setTimeout(function() {
-        resolve(111);
-        return done();
+        return resolve(111);
       }, 1000);
     });
   });
-  return it('then test promise', function() {
-    return promise.then(function(res) {
+  it('then test normal', function(done) {
+    return promise.then11(function(res) {
+      return 333;
+    }).then11(function(res) {
+      res.should.be.exactly(333);
+      return done();
+    });
+  });
+  return it('then test promise', function(done) {
+    return promise.then11(function(res) {
+      return 333;
+    }).then11(function(res) {
+      return res.should.be.exactly(333);
+    }).then11(function(res) {
       return new Promise(function(resolve, reject) {
         return window.setTimeout(function() {
           return resolve(222);
-        }, 1000);
+        }, 500);
+      }).then11(function(res) {
+        res.should.be.exactly(222);
+        return 444;
+      }).done11(function(res) {
+        return res;
       });
-    }).then(function(res) {
-      return console.info(res);
+    }).then11(function(res) {
+      res.should.be.exactly(444);
+      return done();
     });
   });
 });

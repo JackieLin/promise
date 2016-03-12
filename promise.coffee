@@ -5,9 +5,15 @@
 ###
 
 ((window) ->
+    ###
+     * promise list
+    ###
+    promises = []
+
     Promise = (cb=->)->
         init()
         @._cb = cb
+
         ###
          * 0 - pending
          * 1 - fulfilled with _value
@@ -16,9 +22,11 @@
         ###
         @._status = 0
         @._value = null
-
-        # promise 延时列表
+        # then list
         @._deferred = []
+
+        # 入栈操作
+        promises.push @
 
         @._cb.apply null, [@.resolve.bind(@), @.reject.bind(@)]
 
@@ -46,6 +54,8 @@
     Promise::resolve = (res)->
         @._status = 1
         @._value = res
+        @.run()
+
         @
 
     Promise::reject = ->
@@ -53,17 +63,74 @@
         @._value = res
         @
 
-    Promise::then = (cb) ->
-        if @._status isnt 3
-            _value = cb.apply null, [@._value]
+    Promise::doThen = ->
+        if not @._deferred.length
+            return
 
-        if @._status is 3
+        if @._deferred.length and @._status is 1
+            _value = @._deferred.shift().apply @, [@._value]
+            if _value instanceof Promise
+                @._status = 3
+            else
+                @._value = _value
+                @.doThen()
+
+
+    Promise::run = ->
+        @.doThen()
+        if @._done
+            @.doDone @._done
+
+
+    getPrevPromise = ->
+        length = promises.length
+        prev = null
+        if length > 1
+            prev = promises[length - 2]
+
+        prev
+
+    ###
+     * 将对应的值同步到上一个空间
+    ###
+    Promise::notify = ->
+        prev = getPrevPromise()
+        if prev
+            prev._value = @._value
+
+
+    Promise::doDone = (done)->
+        @._value = done.apply @, [@._value]
+        @.notify()
+        promises.pop()
+        if promises.length
+            prev = promises[promises.length - 1]
+            # 重置状态
+            prev._status = 1
+            prev.run()
+
+    ###
+     * 结束
+    ###
+    Promise::done11 = (cb)->
+        if @._status in [0, 3]
+            @._done = cb
+
+        if @._status is 2
+            @.doDone cb
+
+        @
+
+
+
+    Promise::then11 = (cb)->
+        if @._status in [0, 3]
             @._deferred.push cb
+        
+        # resolve
+        if @._status is 1
+            @._value = cb.apply @, [@._value]
 
-        # 返回对象为 Promise
-        if _value instanceof Promise
-            @._status = 3
-        # @._value = cb.apply null, [@._value]
         @
 
     # amd

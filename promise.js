@@ -6,7 +6,12 @@
  * @date 2016-3-9
  */
 (function(window) {
-  var Promise, bind, init;
+
+  /*
+   * promise list
+   */
+  var Promise, bind, getPrevPromise, init, promises;
+  promises = [];
   Promise = function(cb) {
     if (cb == null) {
       cb = function() {};
@@ -23,6 +28,7 @@
     this._status = 0;
     this._value = null;
     this._deferred = [];
+    promises.push(this);
     return this._cb.apply(null, [this.resolve.bind(this), this.reject.bind(this)]);
   };
 
@@ -54,6 +60,7 @@
   Promise.prototype.resolve = function(res) {
     this._status = 1;
     this._value = res;
+    this.run();
     return this;
   };
   Promise.prototype.reject = function() {
@@ -61,16 +68,79 @@
     this._value = res;
     return this;
   };
-  Promise.prototype.then = function(cb) {
+  Promise.prototype.doThen = function() {
     var _value;
-    if (this._status !== 3) {
-      _value = cb.apply(null, [this._value]);
+    if (!this._deferred.length) {
+      return;
     }
-    if (this._status === 3) {
+    if (this._deferred.length && this._status === 1) {
+      _value = this._deferred.shift().apply(this, [this._value]);
+      if (_value instanceof Promise) {
+        return this._status = 3;
+      } else {
+        this._value = _value;
+        return this.doThen();
+      }
+    }
+  };
+  Promise.prototype.run = function() {
+    this.doThen();
+    if (this._done) {
+      return this.doDone(this._done);
+    }
+  };
+  getPrevPromise = function() {
+    var length, prev;
+    length = promises.length;
+    prev = null;
+    if (length > 1) {
+      prev = promises[length - 2];
+    }
+    return prev;
+  };
+
+  /*
+   * 将对应的值同步到上一个空间
+   */
+  Promise.prototype.notify = function() {
+    var prev;
+    prev = getPrevPromise();
+    if (prev) {
+      return prev._value = this._value;
+    }
+  };
+  Promise.prototype.doDone = function(done) {
+    var prev;
+    this._value = done.apply(this, [this._value]);
+    this.notify();
+    promises.pop();
+    if (promises.length) {
+      prev = promises[promises.length - 1];
+      prev._status = 1;
+      return prev.run();
+    }
+  };
+
+  /*
+   * 结束
+   */
+  Promise.prototype.done11 = function(cb) {
+    var ref;
+    if ((ref = this._status) === 0 || ref === 3) {
+      this._done = cb;
+    }
+    if (this._status === 2) {
+      this.doDone(cb);
+    }
+    return this;
+  };
+  Promise.prototype.then11 = function(cb) {
+    var ref;
+    if ((ref = this._status) === 0 || ref === 3) {
       this._deferred.push(cb);
     }
-    if (_value instanceof Promise) {
-      this._status = 3;
+    if (this._status === 1) {
+      this._value = cb.apply(this, [this._value]);
     }
     return this;
   };
