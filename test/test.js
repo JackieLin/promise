@@ -28,7 +28,8 @@ describe('Promise', function() {
     return promise.then11(function(res) {
       return 333;
     }).then11(function(res) {
-      return res.should.be.exactly(333);
+      res.should.be.exactly(333);
+      return 333;
     }).then11(function(res) {
       return new Promise(function(resolve, reject) {
         return window.setTimeout(function() {
@@ -42,6 +43,8 @@ describe('Promise', function() {
       });
     }).then11(function(res) {
       res.should.be.exactly(444);
+      return res;
+    }).done11(function(res) {
       return done();
     });
   });

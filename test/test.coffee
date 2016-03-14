@@ -20,9 +20,10 @@ describe 'Promise', ->
 
     it 'then test promise', (done)->
         promise.then11 (res)->
-            return 333
+            333
         .then11 (res) ->
             (res).should.be.exactly 333
+            333
         .then11 (res)->
             new Promise (resolve, reject)->
                 window.setTimeout ->
@@ -34,8 +35,10 @@ describe 'Promise', ->
             .done11 (res) ->
                 # 必须
                 res
-
         .then11 (res) ->
             (res).should.be.exactly 444
+            res
+
+        .done11 (res) ->
             done()
 

@@ -129,18 +129,16 @@
     if ((ref = this._status) === 0 || ref === 3) {
       this._done = cb;
     }
-    if (this._status === 2) {
+    if (this._status === 1) {
+      this.doThen();
       this.doDone(cb);
     }
     return this;
   };
   Promise.prototype.then11 = function(cb) {
     var ref;
-    if ((ref = this._status) === 0 || ref === 3) {
+    if ((ref = this._status) === 0 || ref === 1 || ref === 3) {
       this._deferred.push(cb);
-    }
-    if (this._status === 1) {
-      this._value = cb.apply(this, [this._value]);
     }
     return this;
   };

@@ -116,7 +116,8 @@
         if @._status in [0, 3]
             @._done = cb
 
-        if @._status is 2
+        if @._status is 1
+            @.doThen()
             @.doDone cb
 
         @
@@ -124,12 +125,13 @@
 
 
     Promise::then11 = (cb)->
-        if @._status in [0, 3]
+        if @._status in [0, 1, 3]
             @._deferred.push cb
         
         # resolve
-        if @._status is 1
-            @._value = cb.apply @, [@._value]
+        # if @._status is 1
+        #     @.doThen()
+        #     @._value = cb.apply @, [@._value]
 
         @
 
