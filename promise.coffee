@@ -3,6 +3,7 @@
  * @author jackie Lin <dashi_lin@163.com>
  * @date 2016-3-9
 ###
+'use strict'
 
 ((window) ->
     ###
@@ -11,7 +12,7 @@
     promises = []
 
     Promise = (cb=->)->
-        init()
+        @.init()
         @._cb = cb
 
         ###
@@ -45,7 +46,10 @@
         warpperFunc
 
 
-    init = ->
+    ###
+     * 初始化操作
+    ###
+    Promise::init = ->
         @._status = 0
         @._value = null
         Function.prototype.bind = bind if not Function.prototype.bind
@@ -66,6 +70,21 @@
         @._value = res
         @
 
+
+    ###
+     * then 方法
+    ###
+    Promise::thenPromise = (cb)->
+        if @._status in [0, 3]
+            @._deferred.push cb
+            
+        # resolve 已经触发, 直接执行 then 方法
+        if @._status is 1
+            @.handleThen cb
+
+        @
+
+
     ###
      * 执行 then
     ###
@@ -74,12 +93,19 @@
             return
 
         if @._deferred.length and @._status is 1
-            _value = @._deferred.shift().apply @, [@._value]
+            @handleThen @._deferred.shift(), =>
+                @.doThen()
+
+    ###
+     * 执行回调方法
+    ###
+    Promise::handleThen = (func, callback=->)->
+            _value = func.apply @, [@._value]
             if _value instanceof Promise
                 @._status = 3
             else
                 @._value = _value
-                @.doThen()
+                callback.apply @
 
 
     Promise::run = ->
@@ -128,12 +154,6 @@
 
         @
 
-
-    Promise::thenPromise = (cb)->
-        if @._status in [0, 1, 3]
-            @._deferred.push cb
-
-        @
 
     # amd
     return window.Promise = Promise if not window.define

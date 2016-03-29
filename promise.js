@@ -5,18 +5,19 @@
  * @author jackie Lin <dashi_lin@163.com>
  * @date 2016-3-9
  */
+'use strict';
 (function(window) {
 
   /*
    * promise list
    */
-  var Promise, bind, getPrevPromise, init, promises;
+  var Promise, bind, getPrevPromise, promises;
   promises = [];
   Promise = function(cb) {
     if (cb == null) {
       cb = function() {};
     }
-    init();
+    this.init();
     this._cb = cb;
 
     /*
@@ -50,7 +51,11 @@
     };
     return warpperFunc;
   };
-  init = function() {
+
+  /*
+   * 初始化操作
+   */
+  Promise.prototype.init = function() {
     this._status = 0;
     this._value = null;
     if (!Function.prototype.bind) {
@@ -74,21 +79,49 @@
   };
 
   /*
+   * then 方法
+   */
+  Promise.prototype.thenPromise = function(cb) {
+    var ref;
+    if ((ref = this._status) === 0 || ref === 3) {
+      this._deferred.push(cb);
+    }
+    if (this._status === 1) {
+      this.handleThen(cb);
+    }
+    return this;
+  };
+
+  /*
    * 执行 then
    */
   Promise.prototype.doThen = function() {
-    var _value;
     if (!this._deferred.length) {
       return;
     }
     if (this._deferred.length && this._status === 1) {
-      _value = this._deferred.shift().apply(this, [this._value]);
-      if (_value instanceof Promise) {
-        return this._status = 3;
-      } else {
-        this._value = _value;
-        return this.doThen();
-      }
+      return this.handleThen(this._deferred.shift(), (function(_this) {
+        return function() {
+          return _this.doThen();
+        };
+      })(this));
+    }
+  };
+
+  /*
+   * 执行回调方法
+   */
+  Promise.prototype.handleThen = function(func, callback) {
+    var _value;
+    if (callback == null) {
+      callback = function() {};
+    }
+    _value = func.apply(this, [this._value]);
+    if (_value instanceof Promise) {
+      return this._status = 3;
+    } else {
+      this._value = _value;
+      return callback.apply(this);
     }
   };
   Promise.prototype.run = function() {
@@ -140,13 +173,6 @@
     if (this._status === 1) {
       this.doThen();
       this.doDone(cb);
-    }
-    return this;
-  };
-  Promise.prototype.thenPromise = function(cb) {
-    var ref;
-    if ((ref = this._status) === 0 || ref === 1 || ref === 3) {
-      this._deferred.push(cb);
     }
     return this;
   };
