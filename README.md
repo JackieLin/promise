@@ -5,11 +5,11 @@ promise A+ 规范的简单实现
 
 点击 [这里](https://github.com/JackieLin/promise/blob/master/promise.js "下载") 下载，可以通过两种方式引入：
 
-    1. 创建 script 标签 <script src="<Your path>/promise.js"></script>
-    2. 通过 requirejs 等支持 AMD 规范的库引入
+	1. 创建 script 标签 <script src="<Your path>/promise.js"></script>
+	2. 通过 requirejs 等支持 AMD 规范的库引入
 
 ### 2. 语法
-    // 新建
+	// 新建
     promise = new Promise(function(resolve, reject) {
       return window.setTimeout(function() {
         return resolve(111);
@@ -20,7 +20,7 @@ promise A+ 规范的简单实现
     promise.then(function(res) {
       return 333;
     }).then(function(res) {
-        // 执行方法体
+   		// 执行方法体
     });
     
     // then 返回 promise
