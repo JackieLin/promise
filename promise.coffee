@@ -65,19 +65,28 @@
 
         @
 
-    Promise::reject = ->
+    Promise::reject = (res)->
         @._status = 2
         @._value = res
         @
 
 
     ###
+     * 抛异常处理
+    ###
+    Promise::fail = (cb)->
+        return false if @._status isnt 2
+        @._value = cb.apply @, [@._value]
+
+        @
+
+    ###
      * then 方法
     ###
-    Promise::thenPromise = (cb)->
+    Promise::then = (cb)->
         if @._status in [0, 3]
             @._deferred.push cb
-            
+
         # resolve 已经触发, 直接执行 then 方法
         if @._status is 1
             @.handleThen cb
@@ -144,7 +153,7 @@
     ###
      * 结束
     ###
-    Promise::donePromise = (cb)->
+    Promise::done = (cb)->
         if @._status in [0, 3]
             @._done = cb
 

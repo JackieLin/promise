@@ -72,16 +72,27 @@
     this.run();
     return this;
   };
-  Promise.prototype.reject = function() {
+  Promise.prototype.reject = function(res) {
     this._status = 2;
     this._value = res;
     return this;
   };
 
   /*
+   * 抛异常处理
+   */
+  Promise.prototype.fail = function(cb) {
+    if (this._status !== 2) {
+      return false;
+    }
+    this._value = cb.apply(this, [this._value]);
+    return this;
+  };
+
+  /*
    * then 方法
    */
-  Promise.prototype.thenPromise = function(cb) {
+  Promise.prototype.then = function(cb) {
     var ref;
     if ((ref = this._status) === 0 || ref === 3) {
       this._deferred.push(cb);
@@ -165,7 +176,7 @@
   /*
    * 结束
    */
-  Promise.prototype.donePromise = function(cb) {
+  Promise.prototype.done = function(cb) {
     var ref;
     if ((ref = this._status) === 0 || ref === 3) {
       this._done = cb;

@@ -10,35 +10,40 @@ describe 'Promise', ->
                 resolve 111
             , 1000
 
-    it 'thenPromise test normal', (donePromise)->
+    it 'then test normal', (done)->
         # normal promise
-        promise.thenPromise (res)->
+        promise.then (res)->
             return 333
-        .thenPromise (res) ->
+        .then (res) ->
             (res).should.be.exactly 333
-            donePromise()
+            done()
 
-    it 'thenPromise test promise', (donePromise)->
-        promise.thenPromise (res)->
+    it 'then test promise', (done)->
+        promise.then (res)->
             333
-        .thenPromise (res) ->
+        .then (res) ->
             (res).should.be.exactly 333
             333
-        .thenPromise (res)->
+        .then (res)->
             new Promise (resolve, reject)->
                 window.setTimeout ->
                     resolve 222
                 , 500
-            .thenPromise (res) ->
+            .then (res) ->
                 (res).should.be.exactly 222
                 444
-            .donePromise (res) ->
+            .done (res) ->
                 # 必须
                 res
-        .thenPromise (res) ->
+        .then (res) ->
             (res).should.be.exactly 444
             res
 
-        .donePromise (res) ->
-            donePromise()
+        .done (res) ->
+            done()
 
+    it 'promise fail', ->
+        new Promise (resolve, reject) ->
+            reject 'error'
+        .fail (res) ->
+            (res).should.be.exactly 'error'
