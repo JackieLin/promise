@@ -16,36 +16,36 @@ describe('Promise', function() {
       }, 1000);
     });
   });
-  it('then test normal', function(done) {
-    return promise.then11(function(res) {
+  it('thenPromise test normal', function(donePromise) {
+    return promise.thenPromise(function(res) {
       return 333;
-    }).then11(function(res) {
+    }).thenPromise(function(res) {
       res.should.be.exactly(333);
-      return done();
+      return donePromise();
     });
   });
-  return it('then test promise', function(done) {
-    return promise.then11(function(res) {
+  return it('thenPromise test promise', function(donePromise) {
+    return promise.thenPromise(function(res) {
       return 333;
-    }).then11(function(res) {
+    }).thenPromise(function(res) {
       res.should.be.exactly(333);
       return 333;
-    }).then11(function(res) {
+    }).thenPromise(function(res) {
       return new Promise(function(resolve, reject) {
         return window.setTimeout(function() {
           return resolve(222);
         }, 500);
-      }).then11(function(res) {
+      }).thenPromise(function(res) {
         res.should.be.exactly(222);
         return 444;
-      }).done11(function(res) {
+      }).donePromise(function(res) {
         return res;
       });
-    }).then11(function(res) {
+    }).thenPromise(function(res) {
       res.should.be.exactly(444);
       return res;
-    }).done11(function(res) {
-      return done();
+    }).donePromise(function(res) {
+      return donePromise();
     });
   });
 });

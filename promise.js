@@ -57,6 +57,10 @@
       return Function.prototype.bind = bind;
     }
   };
+
+  /*
+   * 执行  then 队列
+   */
   Promise.prototype.resolve = function(res) {
     this._status = 1;
     this._value = res;
@@ -68,6 +72,10 @@
     this._value = res;
     return this;
   };
+
+  /*
+   * 执行 then
+   */
   Promise.prototype.doThen = function() {
     var _value;
     if (!this._deferred.length) {
@@ -124,7 +132,7 @@
   /*
    * 结束
    */
-  Promise.prototype.done11 = function(cb) {
+  Promise.prototype.donePromise = function(cb) {
     var ref;
     if ((ref = this._status) === 0 || ref === 3) {
       this._done = cb;
@@ -135,7 +143,7 @@
     }
     return this;
   };
-  Promise.prototype.then11 = function(cb) {
+  Promise.prototype.thenPromise = function(cb) {
     var ref;
     if ((ref = this._status) === 0 || ref === 1 || ref === 3) {
       this._deferred.push(cb);

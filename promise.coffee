@@ -51,6 +51,9 @@
         Function.prototype.bind = bind if not Function.prototype.bind
 
 
+    ###
+     * 执行  then 队列
+    ###
     Promise::resolve = (res)->
         @._status = 1
         @._value = res
@@ -63,6 +66,9 @@
         @._value = res
         @
 
+    ###
+     * 执行 then
+    ###
     Promise::doThen = ->
         if not @._deferred.length
             return
@@ -112,7 +118,7 @@
     ###
      * 结束
     ###
-    Promise::done11 = (cb)->
+    Promise::donePromise = (cb)->
         if @._status in [0, 3]
             @._done = cb
 
@@ -123,15 +129,9 @@
         @
 
 
-
-    Promise::then11 = (cb)->
+    Promise::thenPromise = (cb)->
         if @._status in [0, 1, 3]
             @._deferred.push cb
-        
-        # resolve
-        # if @._status is 1
-        #     @.doThen()
-        #     @._value = cb.apply @, [@._value]
 
         @
 
@@ -141,5 +141,4 @@
     if window.define
         window.define ->
             Promise
-
 ) window
