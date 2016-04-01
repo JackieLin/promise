@@ -25,6 +25,8 @@
         @._value = null
         # then list
         @._deferred = []
+        # 是否异步加载（false: 同步）
+        @._async = false
 
         # 入栈操作
         promises.push @
@@ -62,6 +64,8 @@
         @._status = 1
         @._value = res
         @.run()
+        # 异步，跳转到上一个 promise
+        @.next()
 
         @
 
@@ -80,15 +84,35 @@
 
         @
 
+
+    ###
+     * 下一步控制
+    ###
+    Promise::next = ->
+        # 没有 done 结束，同步到上一层
+        @.notify() if not @._done and promises.length and not @._deferred.length
+
+    ###
+     * 执行 then 方法
+    ###
+    Promise::run = ->
+        @.doThen()
+
+        if @._done
+            @.doDone @._done
+
+
     ###
      * then 方法
     ###
     Promise::then = (cb)->
         if @._status in [0, 3]
+            @._async = true
             @._deferred.push cb
 
         # resolve 已经触发, 直接执行 then 方法
         if @._status is 1
+            @._async = false
             @.handleThen cb
 
         @
@@ -110,19 +134,39 @@
     ###
     Promise::handleThen = (func, callback=->)->
             _value = func.apply @, [@._value]
-            if _value instanceof Promise
+            # promise 异步加载
+            if _value instanceof Promise and _value._async
                 @._status = 3
+            # promise 同步加载
+            else if _value instanceof Promise and not _value._async
+                @._value = _value._value
+                # 弹出最后一个
+                promises.pop()
+                callback.apply @
             else
                 @._value = _value
                 callback.apply @
 
 
-    Promise::run = ->
-        @.doThen()
-        if @._done
-            @.doDone @._done
+    ###
+     * 将对应的值同步到上一个空间
+    ###
+    Promise::notify = ->
+        prev = getPrevPromise()
+
+        if prev
+            prev._value = @._value
+
+            # 删除掉最后一个
+            promises.pop()
+
+            prev._status = 1
+            prev.run()
 
 
+    ###
+     * 获取上一个 promise 列表
+    ###
     getPrevPromise = ->
         length = promises.length
         prev = null
@@ -130,14 +174,6 @@
             prev = promises[length - 2]
 
         prev
-
-    ###
-     * 将对应的值同步到上一个空间
-    ###
-    Promise::notify = ->
-        prev = getPrevPromise()
-        if prev
-            prev._value = @._value
 
 
     Promise::doDone = (done)->

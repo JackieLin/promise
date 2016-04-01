@@ -29,6 +29,7 @@
     this._status = 0;
     this._value = null;
     this._deferred = [];
+    this._async = false;
     promises.push(this);
     return this._cb.apply(null, [this.resolve.bind(this), this.reject.bind(this)]);
   };
@@ -70,6 +71,7 @@
     this._status = 1;
     this._value = res;
     this.run();
+    this.next();
     return this;
   };
   Promise.prototype.reject = function(res) {
@@ -90,14 +92,35 @@
   };
 
   /*
+   * 下一步控制
+   */
+  Promise.prototype.next = function() {
+    if (!this._done && promises.length && !this._deferred.length) {
+      return this.notify();
+    }
+  };
+
+  /*
+   * 执行 then 方法
+   */
+  Promise.prototype.run = function() {
+    this.doThen();
+    if (this._done) {
+      return this.doDone(this._done);
+    }
+  };
+
+  /*
    * then 方法
    */
   Promise.prototype.then = function(cb) {
     var ref;
     if ((ref = this._status) === 0 || ref === 3) {
+      this._async = true;
       this._deferred.push(cb);
     }
     if (this._status === 1) {
+      this._async = false;
       this.handleThen(cb);
     }
     return this;
@@ -128,27 +151,16 @@
       callback = function() {};
     }
     _value = func.apply(this, [this._value]);
-    if (_value instanceof Promise) {
+    if (_value instanceof Promise && _value._async) {
       return this._status = 3;
+    } else if (_value instanceof Promise && !_value._async) {
+      this._value = _value._value;
+      promises.pop();
+      return callback.apply(this);
     } else {
       this._value = _value;
       return callback.apply(this);
     }
-  };
-  Promise.prototype.run = function() {
-    this.doThen();
-    if (this._done) {
-      return this.doDone(this._done);
-    }
-  };
-  getPrevPromise = function() {
-    var length, prev;
-    length = promises.length;
-    prev = null;
-    if (length > 1) {
-      prev = promises[length - 2];
-    }
-    return prev;
   };
 
   /*
@@ -158,8 +170,24 @@
     var prev;
     prev = getPrevPromise();
     if (prev) {
-      return prev._value = this._value;
+      prev._value = this._value;
+      promises.pop();
+      prev._status = 1;
+      return prev.run();
     }
+  };
+
+  /*
+   * 获取上一个 promise 列表
+   */
+  getPrevPromise = function() {
+    var length, prev;
+    length = promises.length;
+    prev = null;
+    if (length > 1) {
+      prev = promises[length - 2];
+    }
+    return prev;
   };
   Promise.prototype.doDone = function(done) {
     var prev;
