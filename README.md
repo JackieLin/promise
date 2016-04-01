@@ -29,9 +29,6 @@ promise A+ 规范的简单实现
         window.setTimeout(function() {
           resolve(222);
         }, 500);
-      }).done(function(res) {
-        // done 方法必须写，否则 promise 不会返回
-        return res;
       });
     }).then(function(res) {
       return res;
