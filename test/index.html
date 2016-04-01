@@ -12,6 +12,9 @@
   <script src="./mocha.js"></script>
 
   <script>mocha.setup('bdd')</script>
+  <script>
+    window.Promise = undefined;
+  </script>
   <script src="../promise.js"></script>
   <script src="test.js"></script>
   <script>

@@ -10,13 +10,12 @@ describe 'Promise', ->
                 resolve 111
             , 1000
 
-    it 'then test normal', (done)->
+    it 'then test normal', ->
         # normal promise
         promise.then (res)->
             return 333
         .then (res) ->
             (res).should.be.exactly 333
-            done()
 
     it 'then test promise', (done)->
         promise.then (res)->
@@ -33,7 +32,6 @@ describe 'Promise', ->
                 (res).should.be.exactly 222
                 444
             .done (res) ->
-                # 必须
                 res
         .then (res) ->
             (res).should.be.exactly 444
@@ -42,8 +40,9 @@ describe 'Promise', ->
         .done (res) ->
             done()
 
-    it 'promise fail', ->
+    it 'promise fail', (done)->
         new Promise (resolve, reject) ->
             reject 'error'
         .fail (res) ->
             (res).should.be.exactly 'error'
+            done()

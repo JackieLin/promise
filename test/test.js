@@ -16,12 +16,11 @@ describe('Promise', function() {
       }, 1000);
     });
   });
-  it('then test normal', function(done) {
+  it('then test normal', function() {
     return promise.then(function(res) {
       return 333;
     }).then(function(res) {
-      res.should.be.exactly(333);
-      return done();
+      return res.should.be.exactly(333);
     });
   });
   it('then test promise', function(done) {
@@ -48,11 +47,12 @@ describe('Promise', function() {
       return done();
     });
   });
-  return it('promise fail', function() {
+  return it('promise fail', function(done) {
     return new Promise(function(resolve, reject) {
       return reject('error');
     }).fail(function(res) {
-      return res.should.be.exactly('error');
+      res.should.be.exactly('error');
+      return done();
     });
   });
 });
